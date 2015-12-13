@@ -53,7 +53,7 @@ func KernelUpdate() error {
 			})
 		}
 
-		gr, err := http.Get("http://convox.s3.amazonaws.com/kernel.json")
+		gr, err := http.Get(kernelTemplate())
 
 		if err != nil {
 			return err
@@ -84,7 +84,7 @@ func KernelUpdate() error {
 
 		req := &cloudformation.UpdateStackInput{
 			StackName:    aws.String(stackName),
-			TemplateURL:  aws.String("http://convox.s3.amazonaws.com/kernel.json"),
+			TemplateURL:  aws.String(kernelTemplate()),
 			Capabilities: []*string{aws.String("CAPABILITY_IAM")},
 			Parameters:   finalParams,
 		}
@@ -125,4 +125,14 @@ func latestAmi() (string, error) {
 	}
 
 	return string(data), nil
+}
+
+func kernelTemplate() string {
+	kernelTemplateSource := "http://convox.s3.amazonaws.com/kernel.json"
+
+	if os.Getenv("KERNEL_SOURCE") != "" {
+		kernelTemplateSource = os.Getenv("KERNEL_SOURCE")
+	}
+
+	return kernelTemplateSource
 }
